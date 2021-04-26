@@ -27,12 +27,12 @@ class FactorialMetadataHandler
     logger.info("doListTables: enter - " + listTablesRequest)
 
     val tables =
-      Seq("companies", "customers")
+      Seq("companies", "employees")
       .map {
         new TableName(listTablesRequest.getSchemaName, _)
       }
 
-    return new ListTablesResponse(listTablesRequest.getCatalogName, tables.asJava)
+    new ListTablesResponse(listTablesRequest.getCatalogName, tables.asJava)
 
   }
 
@@ -40,7 +40,7 @@ class FactorialMetadataHandler
 
     logger.info("doGetTable: enter - " + getTableRequest)
 
-    val partitionColNames: Set[String] = Set("")
+    val partitionColNames: Set[String] = Set("reservoir", "yyyy", "mm", "dd")
 
     /**
      * TODO: Add partitions columns, example below.
@@ -51,8 +51,15 @@ class FactorialMetadataHandler
      *
      */
 
-    val tableSchemaBuilder = SchemaBuilder.newBuilder
+    val genericTableSchemaBuilder = SchemaBuilder.newBuilder
+      .addStringField("reservoir")
+      .addBigIntField("yyyy")
+      .addStringField("mm")
+      .addStringField("dd")
+      .addMetadata("partitionCols", "reservoir,yyyy,mm,dd");
 
+
+    val tableSchemaBuilder = genericTableSchemaBuilder
     /**
      * TODO: Generate a schema for the requested table.
      *
