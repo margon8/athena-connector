@@ -1,6 +1,5 @@
 package com.factorialhr
 
-import com.factorialhr.api.FactorialRecordHandler
 import org.scalatest.funsuite.AnyFunSuite
 
 class FactorialRecordaHandlerTest extends AnyFunSuite {

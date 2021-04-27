@@ -1,4 +1,4 @@
-package com.factorialhr.api
+package com.factorialhr
 
 import com.amazonaws.athena.connector.lambda.QueryStatusChecker
 import com.amazonaws.athena.connector.lambda.data.writers.GeneratedRowWriter
@@ -8,9 +8,7 @@ import com.amazonaws.athena.connector.lambda.records.ReadRecordsRequest
 import com.amazonaws.services.athena.AmazonAthenaClientBuilder
 import com.amazonaws.services.s3.{AmazonS3, AmazonS3ClientBuilder}
 import com.amazonaws.services.secretsmanager.AWSSecretsManagerClientBuilder
-import com.google.gson.Gson
 import org.apache.logging.log4j.scala.Logging
-import scalaj.http.Http
 
 import java.io.{BufferedReader, InputStreamReader}
 import java.lang.String.format
@@ -47,7 +45,7 @@ class FactorialRecordHandler(amazonS3: AmazonS3 = AmazonS3ClientBuilder.defaultC
      *
      */
 
-    val dataBucket = null
+    val dataBucket = "s3://factorial-etl/entity_mapper/dl/clean/employees_of_company/"
     /**
      * TODO: Get the data bucket from the env variable set by athena-example.yaml
      *
@@ -55,7 +53,7 @@ class FactorialRecordHandler(amazonS3: AmazonS3 = AmazonS3ClientBuilder.defaultC
      *
      */
 
-    val dataKey = format("%s/%s/%s/sample_data.json", splitYear, splitMonth, splitDay)
+    val dataKey = format("%s/*.parquet", reservoir)
 
     val s3Reader = openS3File(amazonS3, dataBucket, dataKey)
     if (s3Reader == null) { //There is no data to read for this split.
@@ -143,38 +141,6 @@ class FactorialRecordHandler(amazonS3: AmazonS3 = AmazonS3ClientBuilder.defaultC
       return new BufferedReader(new InputStreamReader(obj.getObjectContent))
     }
     null
-  }
-
-  case class AuthorizationRequest(client_id: String, client_secret: String, code: String,
-                                  grant_type: String = "authorization_code",
-                                  redirect_uri: String = "http://www.google.com")
-
-  case class AuthorizationResponse(access_token: String, token_type: String, expires_in: Int, refresh_token: String)
-
-  def authAPIConnection(): String = {
-
-    val appId = "T9nhsmjbm8wX_OYlbyijqEukZlyywwmmRMuPCoSzt6Q"
-    val secret = "qLNW4uPSLjbeSjsE75P5Y-9NpS5Y2w1zIz4ZFM-xoyU"
-
-
-
-    val authCode = "w7mAJqQZrn0u4eu48BcKdRkwvRF_DHFShu8IkfDfht8"
-
-    val request = AuthorizationRequest(appId, secret, authCode)
-    val requestBodyAsJson = new Gson().toJson(request)
-
-    val authUrl = "https://api.factorialhr.com/oauth/token"
-
-    val response = Http(authUrl)
-      .postData(requestBodyAsJson)
-      .header("Content-Type", "application/json")
-      .header("Charset", "UTF-8")
-      .asString.body
-
-    val result = new Gson().fromJson(response, classOf[AuthorizationResponse])
-
-    val bearer = result.access_token
-    bearer
   }
 
 }
